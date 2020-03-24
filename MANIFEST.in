@@ -1,0 +1,18 @@
+include MANIFEST.in
+include requirements.txt
+include *.json
+include *.md
+include *.py
+include *.txt
+recursive-include ava_cgptc *.css
+recursive-include ava_cgptc *.csv
+recursive-include ava_cgptc *.html
+recursive-include ava_cgptc *.ico
+recursive-include ava_cgptc *.js
+recursive-include ava_cgptc *.json
+recursive-include ava_cgptc *.md
+recursive-include ava_cgptc *.png
+recursive-include ava_cgptc *.py
+recursive-include ava_cgptc *.svg
+recursive-include ava_cgptc *.txt
+recursive-exclude ava_cgptc *.pyc
