@@ -86,11 +86,11 @@ app_license = "MIT"
 # 		"on_trash": "method"
 #	}
 # }
-doc_events = {
-	"Payment Entry": {
-		"before_validate": "ava_cgptc.api.override_set_missing_values"
-	}
-}
+# doc_events = {
+# 	"Payment Entry": {
+# 		"before_validate": "ava_cgptc.api.override_set_missing_values"
+# 	}
+# }
 # Scheduled Tasks
 # ---------------
 
@@ -124,9 +124,9 @@ doc_events = {
 # 	"frappe.desk.doctype.event.event.get_events": "ava_cgptc.event.get_events"
 # }
 #
-override_whitelisted_methods = {
-	"erpnext.accounts.doctype.payment_entry.payment_entry.get_party_details": "ava_cgptc.api.get_party_details"
-}
+# override_whitelisted_methods = {
+	# "erpnext.accounts.doctype.payment_entry.payment_entry.get_party_details": "ava_cgptc.api.get_party_details"
+# }
 fixtures = ['Party Type']
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,

@@ -6,7 +6,7 @@ import frappe
 def get_data():
 	config = [
 		{
-			"label": _("Report"),
+			"label": _("Ava Report"),
 			"items": [
 				{
 					"type": "report",
@@ -15,5 +15,16 @@ def get_data():
 					"doctype": "GL Entry"
 				}
 			]
-		}]
+		},
+		{
+			"label": _("Ava Accounts"),
+			"items": [
+				{
+					"type": "doctype",
+					"name": "Ava Payment Entry",
+					"description": _("Payment Entry for Customer Group.")
+				}
+			]
+		}		
+		]
 	return config

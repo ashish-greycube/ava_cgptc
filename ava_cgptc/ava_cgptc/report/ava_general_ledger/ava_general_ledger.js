@@ -162,7 +162,13 @@ frappe.query_reports["Ava General Ledger"] = {
 			"label": __("Include Default Book Entries"),
 			"fieldtype": "Check",
 			"default": 1
-		}
+		},
+		{
+			"fieldname":"order_by",
+			"label": __("order_by"),
+			"fieldtype": "Data",
+			"hidden": 1
+		}		
 	]
 }
 
