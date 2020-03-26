@@ -431,10 +431,7 @@ class AvaPaymentEntry(AccountsController):
 			gl_entries = []
 			self.add_party_gl_entries(gl_entries,d.party,d.reference_doctype,d.reference_name,d.allocated_amount,d.exchange_rate)
 			self.add_bank_gl_entries(gl_entries,d.party,d.reference_doctype,d.reference_name,d.allocated_amount,d.exchange_rate)
-		# self.add_deductions_gl_entries(gl_entries)
-			print('-----------------------------------------')
-			print(gl_entries)
-			print('-----------------------------------------')
+			self.add_deductions_gl_entries(gl_entries)
 			make_gl_entries(gl_entries, cancel=cancel, adv_adj=adv_adj)
 
 	def add_party_gl_entries(self, gl_entries,d_party,d_reference_doctype,d_reference_name,d_allocated_amount,d_exchange_rate):
@@ -612,7 +609,6 @@ def get_outstanding_reference_documents(args):
 			args["party_type"]='Customer'
 			# conditions.append("party_type=%(party_type)s")
 
-	# print(args.get('party_type') ,args.get('party') )
 	# confirm that Supplier is not blocked
 	if args.get('party_type') == 'Supplier':
 		supplier_status = get_supplier_block_status(args['party'])
@@ -692,8 +688,6 @@ def get_outstanding_reference_documents(args):
 				for d in order_to_be_billed:
 					d['party']=party[0]
 				orders_to_be_billed.append(order_to_be_billed[0])
-	print('negative_outstanding_invoices',negative_outstanding_invoices,'orders_to_be_billed',orders_to_be_billed,'outstanding_invoices',outstanding_invoices)
-	print('---------------------------------------------')
 	data = negative_outstanding_invoices + outstanding_invoices + orders_to_be_billed
 
 	if not data:
