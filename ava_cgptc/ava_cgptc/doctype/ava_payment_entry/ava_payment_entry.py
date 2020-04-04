@@ -422,17 +422,43 @@ class AvaPaymentEntry(AccountsController):
 		self.set("remarks", "\n".join(remarks))
 
 	def make_gl_entries(self, cancel=0, adv_adj=0):
+		print('--------------+++++make_gl_entries','cancel',cancel)
 		if self.payment_type in ("Receive", "Pay") and not self.get("party_account_field"):
 			self.setup_party_account_field()
 
-		
-		
 		for d in self.get("references"):
-			gl_entries = []
+			print("----------------")
+			print(d.name)
+			last_name=d.name
+			print(d.reference_name)
+			print(d.party)
+			print(d.reference_doctype)
+			print(d.total_amount)
+			print(d.allocated_amount)	
+			print("----------------")
+
+
+		gl_entries = []
+
+		for d in self.get("references"):
+			print("+++----------------")
+			print(d.name)
+			# print(d.reference_name)
+			# print(d.party)
+			# print(d.reference_doctype)
+			# print(d.total_amount)
+			# print(d.allocated_amount)			
 			self.add_party_gl_entries(gl_entries,d.party,d.reference_doctype,d.reference_name,d.allocated_amount,d.exchange_rate)
 			self.add_bank_gl_entries(gl_entries,d.party,d.reference_doctype,d.reference_name,d.allocated_amount,d.exchange_rate)
-			self.add_deductions_gl_entries(gl_entries)
-			make_gl_entries(gl_entries, cancel=cancel, adv_adj=adv_adj)
+		self.add_party_gl_entries_for_unallocated_amount(gl_entries)
+		self.add_deductions_gl_entries(gl_entries)
+
+		# print('aftedr gl_entries',gl_entries)
+		print("+++----------------")
+		print(gl_entries)
+		print("+++----------------")
+		make_gl_entries(gl_entries, cancel=cancel, adv_adj=adv_adj)
+		print("-------------out of make---------------------------------")
 
 	def add_party_gl_entries(self, gl_entries,d_party,d_reference_doctype,d_reference_name,d_allocated_amount,d_exchange_rate):
 		if self.party_account:
@@ -469,6 +495,26 @@ class AvaPaymentEntry(AccountsController):
 			})
 
 			gl_entries.append(gle)
+
+
+
+	def add_party_gl_entries_for_unallocated_amount(self, gl_entries):
+		if self.party_account:
+			if self.payment_type=="Receive":
+				against_account = self.paid_to
+			else:
+				against_account = self.paid_from
+
+			party_gl_dict = self.get_gl_dict({
+				"account": self.party_account,
+				"party_type": self.party_type,
+				"party": self.party,
+				"against": against_account,
+				"account_currency": self.party_account_currency,
+				"cost_center": self.cost_center
+			})
+
+			dr_or_cr = "credit" if erpnext.get_party_account_type(self.party_type) == 'Receivable' else "debit"
 
 			if self.unallocated_amount:
 				base_unallocated_amount = base_unallocated_amount = self.unallocated_amount * \
@@ -827,17 +873,17 @@ def get_party_details(company, party_type, party, date, cost_center=None):
 
 @frappe.whitelist()
 def get_account_details(account, date, cost_center=None):
-	frappe.has_permission('Payment Entry', throw=True)
+	frappe.has_permission('Ava Payment Entry', throw=True)
 
 	# to check if the passed account is accessible under reference doctype Payment Entry
 	account_list = frappe.get_list('Account', {
 		'name': account
-	}, reference_doctype='Payment Entry', limit=1)
+	}, reference_doctype='Ava Payment Entry', limit=1)
 
 	# There might be some user permissions which will allow account under certain doctypes
 	# except for Payment Entry, only in such case we should throw permission error
 	if not account_list:
-		frappe.throw(_('Account: {0} is not permitted under Payment Entry').format(account))
+		frappe.throw(_('Account: {0} is not permitted under Ava Payment Entry').format(account))
 
 	account_balance = get_balance_on(account, date, cost_center=cost_center,
 		ignore_account_permission=True)
@@ -1031,7 +1077,7 @@ def get_payment_entry(dt, dn, party_amount=None, bank_account=None, bank_amount=
 			# if party account currency and bank currency is different then populate paid amount as well
 			paid_amount = received_amount * doc.conversion_rate
 
-	pe = frappe.new_doc("Payment Entry")
+	pe = frappe.new_doc("Ava Payment Entry")
 	pe.payment_type = payment_type
 	pe.company = doc.company
 	pe.cost_center = doc.get("cost_center")
@@ -1111,7 +1157,7 @@ def get_party_and_account_balance(company, date, paid_from=None, paid_to=None, p
 def make_payment_order(source_name, target_doc=None):
 	from frappe.model.mapper import get_mapped_doc
 	def set_missing_values(source, target):
-		target.payment_order_type = "Payment Entry"
+		target.payment_order_type = "Ava Payment Entry"
 
 	def update_item(source_doc, target_doc, source_parent):
 		target_doc.bank_account = source_parent.party_bank_account
@@ -1123,7 +1169,7 @@ def make_payment_order(source_name, target_doc=None):
 
 
 	doclist = get_mapped_doc("Ava Payment Entry", source_name,	{
-		"Payment Entry": {
+		"Ava Payment Entry": {
 			"doctype": "Payment Order",
 			"validation": {
 				"docstatus": ["=", 1]

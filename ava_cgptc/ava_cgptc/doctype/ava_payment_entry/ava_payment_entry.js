@@ -797,6 +797,7 @@ frappe.ui.form.on('Ava Payment Entry', {
 						+ frm.doc.base_total_allocated_amount)) / frm.doc.target_exchange_rate;
 			}
 		}
+		console.log('unallocated_amount',unallocated_amount)
 		frm.set_value("unallocated_amount", unallocated_amount);
 		frm.trigger("set_difference_amount");
 	},

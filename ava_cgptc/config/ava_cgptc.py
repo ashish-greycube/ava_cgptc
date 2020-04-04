@@ -23,7 +23,13 @@ def get_data():
 					"type": "doctype",
 					"name": "Ava Payment Entry",
 					"description": _("Payment Entry for Customer Group.")
-				}
+				},
+				{
+					"type": "doctype",
+					"label": _("Match Payments with Invoices for Customer Group"),
+					"name": "Ava Payment Reconciliation",
+					"description": _("Match non-linked Invoices and Payments.")
+				}				
 			]
 		}		
 		]

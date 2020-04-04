@@ -337,6 +337,7 @@
    "label": "Get Outstanding Invoice"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "references",
    "fieldtype": "Table",
    "label": "Payment References",
@@ -575,7 +576,7 @@
   }
  ],
  "is_submittable": 1,
- "modified": "2020-03-25 11:39:28.625756",
+ "modified": "2020-04-03 09:35:50.716410",
  "modified_by": "Administrator",
  "module": "Ava Cgptc",
  "name": "Ava Payment Entry",
