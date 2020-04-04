@@ -358,7 +358,7 @@ class AvaPaymentEntry(AccountsController):
 			where parent = %s and allocated_amount = 0""", self.name)
 
 	def validate_payment_against_negative_invoice(self):
-		if ((self.payment_type=="Pay" and self.party_type=="Customer")
+		if ((self.payment_type=="Pay" and self.party_type in ["Customer","Customer Group"])
 				or (self.payment_type=="Receive" and self.party_type=="Supplier")):
 
 			total_negative_outstanding = sum([abs(flt(d.outstanding_amount))
@@ -369,7 +369,7 @@ class AvaPaymentEntry(AccountsController):
 
 			if not total_negative_outstanding:
 				frappe.throw(_("Cannot {0} {1} {2} without any negative outstanding invoice")
-					.format(self.payment_type, ("to" if self.party_type=="Customer" else "from"),
+					.format(self.payment_type, ("to" if self.party_type in ["Customer","Customer Group"] else "from"),
 						self.party_type), InvalidPaymentEntry)
 
 			elif paid_amount - additional_charges > total_negative_outstanding:
@@ -426,41 +426,82 @@ class AvaPaymentEntry(AccountsController):
 		if self.payment_type in ("Receive", "Pay") and not self.get("party_account_field"):
 			self.setup_party_account_field()
 
-		for d in self.get("references"):
-			print("----------------")
-			print(d.name)
-			last_name=d.name
-			print(d.reference_name)
-			print(d.party)
-			print(d.reference_doctype)
-			print(d.total_amount)
-			print(d.allocated_amount)	
-			print("----------------")
-
 
 		gl_entries = []
 
-		for d in self.get("references"):
-			print("+++----------------")
-			print(d.name)
-			# print(d.reference_name)
-			# print(d.party)
-			# print(d.reference_doctype)
-			# print(d.total_amount)
-			# print(d.allocated_amount)			
-			self.add_party_gl_entries(gl_entries,d.party,d.reference_doctype,d.reference_name,d.allocated_amount,d.exchange_rate)
-			self.add_bank_gl_entries(gl_entries,d.party,d.reference_doctype,d.reference_name,d.allocated_amount,d.exchange_rate)
-		self.add_party_gl_entries_for_unallocated_amount(gl_entries)
+		# for d in self.get("references"):
+		# 	print("+++-for each reference entry---------------")
+		# 	print(d.name)
+		# 	self.add_party_gl_entries(gl_entries,d.party,d.reference_doctype,d.reference_name,d.allocated_amount,d.exchange_rate)
+			
+        # self.add_bank_gl_entries(gl_entries,d.party,d.reference_doctype,d.reference_name,d.allocated_amount,d.exchange_rate)
+
+		# self.add_party_gl_entries_for_unallocated_amount_1(gl_entries)
+		# self.add_party_gl_entries_for_unallocated_amount_2(gl_entries)
+		self.add_party_gl_entries(gl_entries)
+		self.add_bank_gl_entries(gl_entries)
 		self.add_deductions_gl_entries(gl_entries)
 
-		# print('aftedr gl_entries',gl_entries)
-		print("+++----------------")
+		print('----------------ava for customer group gl map------------------')
 		print(gl_entries)
-		print("+++----------------")
+		print('----------------ava for customer group gl map------------------')
 		make_gl_entries(gl_entries, cancel=cancel, adv_adj=adv_adj)
-		print("-------------out of make---------------------------------")
 
-	def add_party_gl_entries(self, gl_entries,d_party,d_reference_doctype,d_reference_name,d_allocated_amount,d_exchange_rate):
+	def add_party_gl_entries(self, gl_entries):
+		if self.party_account:
+			if self.payment_type=="Receive":
+				against_account = self.paid_to
+			else:
+				against_account = self.paid_from
+
+			party_gl_dict = self.get_gl_dict({
+				"account": self.party_account,
+
+				"against": against_account,
+				"account_currency": self.party_account_currency,
+				"cost_center": self.cost_center
+			})
+
+			dr_or_cr = "credit" if erpnext.get_party_account_type(self.party_type) == 'Receivable' else "debit"
+
+			for d in self.get("references"):
+				gle = party_gl_dict.copy()
+				gle.update({
+				    "party_type": "Customer",
+				    "party": d.party,                    
+					"against_voucher_type": d.reference_doctype,
+					"against_voucher": d.reference_name
+				})
+
+				allocated_amount_in_company_currency = flt(flt(d.allocated_amount) * flt(d.exchange_rate),
+					self.precision("paid_amount"))
+
+				gle.update({
+					dr_or_cr + "_in_account_currency": d.allocated_amount,
+					dr_or_cr: allocated_amount_in_company_currency
+				})
+				print('----------gle for reference table-------')
+				print(gle)
+				gl_entries.append(gle)
+
+			if self.unallocated_amount:
+				base_unallocated_amount = base_unallocated_amount = self.unallocated_amount * \
+					(self.source_exchange_rate if self.payment_type=="Receive" else self.target_exchange_rate)
+
+				gle = party_gl_dict.copy()
+
+				gle.update({
+					"party_type": self.party_type,
+				    "party": self.party,  
+					dr_or_cr + "_in_account_currency": self.unallocated_amount,
+					dr_or_cr: base_unallocated_amount
+				})
+				print('----------gle for unallocated_amount-------')
+				print(gle)
+				gl_entries.append(gle)
+
+
+	def add_party_gl_entries_old(self, gl_entries,d_party,d_reference_doctype,d_reference_name,d_allocated_amount,d_exchange_rate):
 		if self.party_account:
 			if self.payment_type=="Receive":
 				against_account = self.paid_to
@@ -493,12 +534,11 @@ class AvaPaymentEntry(AccountsController):
 				dr_or_cr + "_in_account_currency": d_allocated_amount,
 				dr_or_cr: allocated_amount_in_company_currency
 			})
-
+			print('----------gle for reference table each customer-------')
+			print(gle)
 			gl_entries.append(gle)
 
-
-
-	def add_party_gl_entries_for_unallocated_amount(self, gl_entries):
+	def add_party_gl_entries_for_unallocated_amount_1(self, gl_entries):
 		if self.party_account:
 			if self.payment_type=="Receive":
 				against_account = self.paid_to
@@ -526,10 +566,50 @@ class AvaPaymentEntry(AccountsController):
 					dr_or_cr + "_in_account_currency": self.unallocated_amount,
 					dr_or_cr: base_unallocated_amount
 				})
-
+				print('----------gle for unallocated_amount-------')
+				print(gle)
 				gl_entries.append(gle)
 
-	def add_bank_gl_entries(self, gl_entries,d_party,d_reference_doctype,d_reference_name,d_allocated_amount,d_exchange_rate):
+	def add_party_gl_entries_for_unallocated_amount_2(self, gl_entries):
+		
+			party_gl_dict = self.get_gl_dict({
+				"account": self.paid_to,
+				"against": self.party,
+				"account_currency": self.paid_to_account_currency,
+				"cost_center": self.cost_center,
+				"debit_in_account_currency": self.unallocated_amount,
+				"debit": self.unallocated_amount})
+
+			gle = party_gl_dict.copy()
+			print('----------gle for unallocated_amount_2 - bank-------')
+			print(gle)
+			gl_entries.append(gle)
+
+	def add_bank_gl_entries(self, gl_entries):
+		if self.payment_type in ("Pay", "Internal Transfer"):
+			gl_entries.append(
+				self.get_gl_dict({
+					"account": self.paid_from,
+					"account_currency": self.paid_from_account_currency,
+					"against": self.party if self.payment_type=="Pay" else self.paid_to,
+					"credit_in_account_currency": self.paid_amount,
+					"credit": self.base_paid_amount,
+					"cost_center": self.cost_center
+				})
+			)
+		if self.payment_type in ("Receive", "Internal Transfer"):
+			gl_entries.append(
+				self.get_gl_dict({
+					"account": self.paid_to,
+					"account_currency": self.paid_to_account_currency,
+					"against": self.party if self.payment_type=="Receive" else self.paid_from,
+					"debit_in_account_currency": self.received_amount,
+					"debit": self.base_received_amount,
+					"cost_center": self.cost_center
+				})
+			)
+
+	def add_bank_gl_entries_old(self, gl_entries,d_party,d_reference_doctype,d_reference_name,d_allocated_amount,d_exchange_rate):
 
 		if self.payment_type in ("Pay", "Internal Transfer"):
 			party_gl_dict=self.get_gl_dict({
@@ -991,7 +1071,7 @@ def get_payment_entry(dt, dn, party_amount=None, bank_account=None, bank_amount=
 		frappe.throw(_("Can only make payment against unbilled {0}").format(dt))
 
 	if dt in ("Sales Invoice", "Sales Order"):
-		party_type = "Customer"
+		party_type in ["Customer","Customer Group"]
 	elif dt in ("Purchase Invoice", "Purchase Order"):
 		party_type = "Supplier"
 	elif dt in ("Expense Claim", "Employee Advance"):
