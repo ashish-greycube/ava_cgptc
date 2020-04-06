@@ -3,6 +3,12 @@
 {% include "erpnext/public/js/controllers/accounts.js" %}
 
 frappe.ui.form.on('Ava Payment Entry', {
+	mode_of_payment: function(frm) {
+		get_payment_mode_account(frm, frm.doc.mode_of_payment, function(account){
+			var payment_account_field = frm.doc.payment_type == "Receive" ? "paid_to" : "paid_from";
+			frm.set_value(payment_account_field, account);
+		})
+	},
 	onload: function(frm) {
 		if(frm.doc.__islocal) {
 			if (!frm.doc.paid_from) frm.set_value("paid_from_account_currency", null);
@@ -88,7 +94,7 @@ frappe.ui.form.on('Ava Payment Entry', {
 		});
 
 		frm.set_query("reference_doctype", "references", function() {
-			if (frm.doc.party_type=="Customer") {
+			if (frm.doc.party_type in ["Customer","Customer Group"]) {
 				var doctypes = ["Sales Order", "Sales Invoice", "Journal Entry"];
 			} else if (frm.doc.party_type=="Supplier") {
 				var doctypes = ["Purchase Order", "Purchase Invoice", "Journal Entry"];
@@ -724,7 +730,7 @@ frappe.ui.form.on('Ava Payment Entry', {
 				if(total_negative_outstanding == 0) {
 					frappe.msgprint(__("Cannot {0} {1} {2} without any negative outstanding invoice",
 						[frm.doc.payment_type,
-							(frm.doc.party_type=="Customer" ? "to" : "from"), frm.doc.party_type]));
+							(frm.doc.party_type in ["Customer","Customer Group"] ? "to" : "from"), frm.doc.party_type]));
 					return false
 				} else {
 					frappe.msgprint(__("Paid Amount cannot be greater than total negative outstanding amount {0}", [total_negative_outstanding]));
