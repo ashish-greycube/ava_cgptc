@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe, erpnext
-from frappe.utils import flt, today
+from frappe.utils import flt, today , cstr
 from frappe import msgprint, _
 from frappe.model.document import Document
 from erpnext.accounts.utils import get_outstanding_invoices
@@ -346,8 +346,6 @@ def reconcile_against_document(args):
 		if d.voucher_type in ('Ava Payment Entry', 'Journal Entry'):
 			doc.update_expense_claim()
 
-			doc.update_expense_claim()
-
 def check_if_advance_entry_modified(args):
 	"""
 		check if there is already a voucher reference
@@ -403,7 +401,8 @@ def update_reference_in_journal_entry(d, jv_obj):
 	jv_detail.set(d["dr_or_cr"], d["allocated_amount"])
 	jv_detail.set('debit' if d['dr_or_cr']=='debit_in_account_currency' else 'credit',
 		d["allocated_amount"]*flt(jv_detail.exchange_rate))
-
+	jv_detail.set("party_type","Customer" )
+	jv_detail.set("party",frappe.get_value(d["against_voucher_type"], d["against_voucher"], "customer") )
 	original_reference_type = jv_detail.reference_type
 	original_reference_name = jv_detail.reference_name
 
@@ -426,8 +425,8 @@ def update_reference_in_journal_entry(d, jv_obj):
 		ch.account_type = jvd[0]['account_type']
 		ch.account_currency = jvd[0]['account_currency']
 		ch.exchange_rate = jvd[0]['exchange_rate']
-		ch.party_type = d["party_type"]
-		ch.party = d["party"]
+		ch.party_type = d["party_type"] 
+		ch.party =  d["party"]
 		ch.cost_center = cstr(jvd[0]["cost_center"])
 		ch.balance = flt(jvd[0]["balance"])
 
