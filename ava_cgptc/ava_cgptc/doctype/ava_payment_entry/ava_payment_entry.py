@@ -784,15 +784,14 @@ def get_outstanding_reference_documents(args):
 		condition += " and company = {0}".format(frappe.db.escape(args.get("company")))
 	outstanding_invoices=[]
 	for party in args.get("party"):
-		outstanding_invoice=get_outstanding_invoices(args.get("party_type"), party[0],
+		outstanding_invoice_list=get_outstanding_invoices(args.get("party_type"), party[0],
 		args.get("party_account"), filters=args, condition=condition)
-		# outstanding_invoice['customer']=
-		if len(outstanding_invoice)>0:
-			for d in outstanding_invoice:
+		if len(outstanding_invoice_list)>0:
+			for d in outstanding_invoice_list:
 				d['party']=party[0]
-			outstanding_invoices.append(outstanding_invoice[0])
+				outstanding_invoices.append(d)
+
 	for d in outstanding_invoices:
-		# for d in outstanding_invoice:
 		d["exchange_rate"] = 1
 		if party_account_currency != company_currency:
 			if d.voucher_type in ("Sales Invoice", "Purchase Invoice", "Expense Claim"):
