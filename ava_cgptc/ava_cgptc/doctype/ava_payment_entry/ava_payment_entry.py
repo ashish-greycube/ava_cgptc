@@ -790,7 +790,8 @@ def get_outstanding_reference_documents(args):
 			for d in outstanding_invoice_list:
 				d['party']=party[0]
 				outstanding_invoices.append(d)
-
+	if len(outstanding_invoices)>0:
+		outstanding_invoices.sort(key=lambda item:(item['posting_date'],item['party']), reverse=False)
 	for d in outstanding_invoices:
 		d["exchange_rate"] = 1
 		if party_account_currency != company_currency:
