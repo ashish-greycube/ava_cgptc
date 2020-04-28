@@ -131,7 +131,26 @@ def get_gl_entries(filters):
 	if filters.get("include_default_book_entries"):
 		filters['company_fb'] = frappe.db.get_value("Company",
 			filters.get("company"), 'default_finance_book')
-	print('order_by_statement',order_by_statement)
+	# get data for customer_group w/o customer list
+	gl_entries_party_type=[]
+	if filters.get("party_type")=='Customer Group' and filters.get("party"):
+		gl_entries_party_type = frappe.db.sql(
+			"""
+			select
+				posting_date, account, party_type, party,
+				voucher_type, voucher_no, cost_center, project,
+				against_voucher_type, against_voucher, account_currency,
+				remarks, against, is_opening {select_fields}
+			from `tabGL Entry`
+			where company=%(company)s {conditions}
+			{order_by_statement}
+			""".format(
+				select_fields=select_fields, conditions=get_conditions(filters,party_type='Customer Group'),
+				order_by_statement=order_by_statement
+			),
+			filters, as_dict=1)		
+
+	#normal flow
 	gl_entries = frappe.db.sql(
 		"""
 		select
@@ -147,14 +166,18 @@ def get_gl_entries(filters):
 			order_by_statement=order_by_statement
 		),
 		filters, as_dict=1)
-
+	# if gl_entries_party_type has data append to normal flow
+	if gl_entries_party_type:
+		for d in gl_entries_party_type:
+			gl_entries.append(d)
+		
 	if filters.get('presentation_currency'):
 		return convert_to_presentation_currency(gl_entries, currency_map)
 	else:
 		return gl_entries
 
 
-def get_conditions(filters):
+def get_conditions(filters,party_type=None):
 	conditions = []
 	if filters.get("account"):
 		lft, rgt = frappe.db.get_value("Account", filters["account"], ["lft", "rgt"])
@@ -171,7 +194,7 @@ def get_conditions(filters):
 	if filters.get("group_by") == "Group by Party" and not filters.get("party_type"):
 		conditions.append("party_type in ('Customer', 'Supplier')")
 	if filters.get("party_type"):
-		if filters["party_type"]=='Customer Group' and filters.get("party"):
+		if filters["party_type"]=='Customer Group' and filters.get("party") and party_type==None:
 			lft, rgt = frappe.db.get_value("Customer Group", filters["party"][0], ['lft', 'rgt'])
 			get_parent_customer_groups=frappe.db.sql("""select name from `tabCustomer Group` where lft >= %s and rgt <= %s""", (lft, rgt), as_dict=1)
 			customer_groups = ["%s"%(frappe.db.escape(d.name)) for d in get_parent_customer_groups]
