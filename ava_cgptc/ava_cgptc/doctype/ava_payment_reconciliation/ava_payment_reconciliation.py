@@ -110,6 +110,8 @@ class AvaPaymentReconciliation(Document):
 	def add_invoice_entries(self, non_reconciled_invoices):
 		#Populate 'invoices' with JVs and Invoices to reconcile against
 		self.set('invoices', [])
+		if len(non_reconciled_invoices)>0:
+			non_reconciled_invoices.sort(key=lambda item:(item['posting_date'],item['voucher_no']), reverse=False)
 
 		for e in non_reconciled_invoices:
 			ent = self.append('invoices', {})
