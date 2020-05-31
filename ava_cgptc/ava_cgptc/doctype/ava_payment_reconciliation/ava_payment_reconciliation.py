@@ -155,7 +155,6 @@ class AvaPaymentReconciliation(Document):
 		self.get_unreconciled_entries()
 
 	def get_payment_details(self, row, dr_or_cr):
-		print('get_payment_details',row.reference_name, '--',row.party,'row.party')
 		return frappe._dict({
 			'voucher_type': row.reference_type,
 			'voucher_no' : row.reference_name,
@@ -492,7 +491,6 @@ def update_reference_in_payment_entry(d, payment_entry, do_not_save=False):
 
 	if not do_not_save:
 		payment_entry.save(ignore_permissions=True)
-		print('cccccccccccccccccccccccccccccc=======================================================================================')
 		for x in payment_entry.get("references"):
 			if do_not_save==True:
 				print('called from change of invoice dropdoewn')
@@ -505,4 +503,3 @@ def update_reference_in_payment_entry(d, payment_entry, do_not_save=False):
 			print(x.total_amount)
 			print(x.allocated_amount)
 		print('payment_entry',payment_entry.name)
-		print('ppppppppppppppppppp=======================================================================================')		

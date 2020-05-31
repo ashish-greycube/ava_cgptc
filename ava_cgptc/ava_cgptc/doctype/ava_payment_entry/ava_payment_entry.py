@@ -422,7 +422,6 @@ class AvaPaymentEntry(AccountsController):
 		self.set("remarks", "\n".join(remarks))
 
 	def make_gl_entries(self, cancel=0, adv_adj=0):
-		print('--------------+++++make_gl_entries','cancel',cancel)
 		if self.payment_type in ("Receive", "Pay") and not self.get("party_account_field"):
 			self.setup_party_account_field()
 
@@ -442,9 +441,6 @@ class AvaPaymentEntry(AccountsController):
 		self.add_bank_gl_entries(gl_entries)
 		self.add_deductions_gl_entries(gl_entries)
 
-		print('----------------ava for customer group gl map------------------')
-		print(gl_entries)
-		print('----------------ava for customer group gl map------------------')
 		make_gl_entries(gl_entries, cancel=cancel, adv_adj=adv_adj)
 
 	def add_party_gl_entries(self, gl_entries):
@@ -480,8 +476,6 @@ class AvaPaymentEntry(AccountsController):
 					dr_or_cr + "_in_account_currency": d.allocated_amount,
 					dr_or_cr: allocated_amount_in_company_currency
 				})
-				print('----------gle for reference table-------')
-				print(gle)
 				gl_entries.append(gle)
 
 			if self.unallocated_amount:
@@ -496,8 +490,6 @@ class AvaPaymentEntry(AccountsController):
 					dr_or_cr + "_in_account_currency": self.unallocated_amount,
 					dr_or_cr: base_unallocated_amount
 				})
-				print('----------gle for unallocated_amount-------')
-				print(gle)
 				gl_entries.append(gle)
 
 
@@ -566,8 +558,6 @@ class AvaPaymentEntry(AccountsController):
 					dr_or_cr + "_in_account_currency": self.unallocated_amount,
 					dr_or_cr: base_unallocated_amount
 				})
-				print('----------gle for unallocated_amount-------')
-				print(gle)
 				gl_entries.append(gle)
 
 	def add_party_gl_entries_for_unallocated_amount_2(self, gl_entries):
@@ -581,8 +571,6 @@ class AvaPaymentEntry(AccountsController):
 				"debit": self.unallocated_amount})
 
 			gle = party_gl_dict.copy()
-			print('----------gle for unallocated_amount_2 - bank-------')
-			print(gle)
 			gl_entries.append(gle)
 
 	def add_bank_gl_entries(self, gl_entries):
