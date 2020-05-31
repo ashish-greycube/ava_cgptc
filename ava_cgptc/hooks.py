@@ -86,11 +86,14 @@ doctype_js = {"Payment Entry" : "public/js/payment_entry.js"}
 # 		"on_trash": "method"
 #	}
 # }
-# doc_events = {
-# 	"Payment Entry": {
-# 		"before_validate": "ava_cgptc.api.override_set_missing_values"
-# 	}
-# }
+doc_events = {
+	"Sales Order": {
+		"on_submit": "ava_cgptc.api.check_customer_group_credit_limit_so"
+	},
+	"Sales Invoice": {
+		"on_submit": "ava_cgptc.api.check_customer_group_credit_limit_si"
+	},	
+}
 # Scheduled Tasks
 # ---------------
 

@@ -1,0 +1,50 @@
+{
+ "creation": "2020-05-31 15:48:03.632446",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "company",
+  "column_break_2",
+  "credit_limit",
+  "bypass_credit_limit_check"
+ ],
+ "fields": [
+  {
+   "columns": 4,
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Company",
+   "options": "Company"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "columns": 4,
+   "fieldname": "credit_limit",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Credit Limit"
+  },
+  {
+   "default": "0",
+   "fieldname": "bypass_credit_limit_check",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Bypass Credit Limit Check"
+  }
+ ],
+ "istable": 1,
+ "modified": "2020-05-31 15:48:03.632446",
+ "modified_by": "Administrator",
+ "module": "Ava Cgptc",
+ "name": "Ava Customer Group Credit Limit",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}
