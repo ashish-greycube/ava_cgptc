@@ -1,5 +1,5 @@
 import frappe
-from frappe.utils import flt, cint
+from frappe.utils import flt, cint,fmt_money
 from frappe import _, msgprint, throw
 
 # SO SI: check_customer_group_credit_limit
@@ -102,14 +102,17 @@ def get_credit_limit_for_customer_group(customer_group,company):
 	return flt(credit_limit)
 
 def check_credit_limit_for_customer_group(customer,customer_group, company, ignore_outstanding_sales_order=False, extra_amount=0):
+		# default_currency = frappe.db.get_default("currency")
 		customer_group_outstanding = get_customer_group_outstanding(customer,customer_group,company, ignore_outstanding_sales_order)
 		if extra_amount > 0:
 			customer_group_outstanding += flt(extra_amount)
 
 		credit_limit = get_credit_limit_for_customer_group(customer_group, company)
+		customer_group_outstanding_formatted=flt(customer_group_outstanding)
+		credit_limit_formatted=flt(credit_limit)
 		if credit_limit > 0 and flt(customer_group_outstanding) > credit_limit:
 			msgprint(_("Credit limit has been crossed for customer group {0} ({1}/{2})")
-				.format(customer_group, customer_group_outstanding, credit_limit))
+				.format(customer_group,customer_group_outstanding_formatted ,credit_limit_formatted))
 
 			# If not authorized person raise exception
 			credit_controller = frappe.db.get_value('Accounts Settings', None, 'credit_controller')
