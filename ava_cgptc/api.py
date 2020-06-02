@@ -31,29 +31,28 @@ def get_customer_group_outstanding(customer,customer_group,company,ignore_outsta
 		cond = """ and cost_center in (select name from `tabCost Center` where
 			lft >= {0} and rgt <= {1})""".format(lft, rgt)
 
-		if (customer_group):
-			lft, rgt = frappe.db.get_value("Customer Group", customer_group, ['lft', 'rgt'])
-			get_parent_customer_groups=frappe.db.sql("""select name from `tabCustomer Group` where lft >= %s and rgt <= %s""", (lft, rgt), as_dict=1)
-			customer_groups = ["%s"%(frappe.db.escape(d.name)) for d in get_parent_customer_groups]
-			if customer_groups:
-				condition = ""
-				customer_group_condition = ",".join(['%s'] * len(customer_groups))%(tuple(customer_groups))
-				condition="{0} in ({1})".format(' and customer_group', customer_group_condition)
+	if (customer_group):
+		lft, rgt = frappe.db.get_value("Customer Group", customer_group, ['lft', 'rgt'])
+		get_parent_customer_groups=frappe.db.sql("""select name from `tabCustomer Group` where lft >= %s and rgt <= %s""", (lft, rgt), as_dict=1)
+		customer_groups = ["%s"%(frappe.db.escape(d.name)) for d in get_parent_customer_groups]
+		if customer_groups:
+			condition = ""
+			customer_group_condition = ",".join(['%s'] * len(customer_groups))%(tuple(customer_groups))
+			condition="{0} in ({1})".format(' and customer_group', customer_group_condition)
 
-			customer_list=frappe.db.sql(""" select name from `tabCustomer` where docstatus < 2 {cond} """.format(cond=condition), as_dict=1)
-			if customer_list:
-				condition = ""
-				customer_list_condition = ",".join(['%s'] * len(customer_list))%(tuple(customer_list))
-				condition="{0} in ({1})".format(' and party', customer_list_condition)
-
-
-				outstanding_based_on_gle_for_all_customers_in_group = frappe.db.sql("""
-					select sum(debit) - sum(credit)
-					from `tabGL Entry` where party_type = 'Customer'
-					{condition} and company=%s {cond}""".format(condition=condition,cond=cond), (company))
-
-				outstanding_based_on_gle_for_all_customers_in_group = flt(outstanding_based_on_gle_for_all_customers_in_group[0][0]) if outstanding_based_on_gle_for_all_customers_in_group else 0
-
+		customer_list=frappe.db.sql(""" select name from `tabCustomer` where docstatus < 2 {cond} """.format(cond=condition), as_dict=1)
+		customer_list = ["%s"%(frappe.db.escape(d.name)) for d in customer_list]
+		condition = "1=1"
+		if len(customer_list)>0:
+			customer_list = ",".join(['%s'] * len(customer_list))%(tuple(customer_list))
+			condition="{0} in ({1})".format(' and party', customer_list)
+			print('customer_list',condition)
+		outstanding_based_on_gle_for_all_customers_in_group = frappe.db.sql("""
+			select sum(debit) - sum(credit)
+			from `tabGL Entry` where party_type = 'Customer'
+			{condition} and company=%s {cond}""".format(condition=condition,cond=cond), (company))
+		outstanding_based_on_gle_for_all_customers_in_group = flt(outstanding_based_on_gle_for_all_customers_in_group[0][0]) if outstanding_based_on_gle_for_all_customers_in_group else 0
+		print('outstanding_based_on_gle_for_all_customers_in_group',outstanding_based_on_gle_for_all_customers_in_group)
 	# Outstanding based on Sales Order
 	outstanding_based_on_so_customer_group = 0.0
 
