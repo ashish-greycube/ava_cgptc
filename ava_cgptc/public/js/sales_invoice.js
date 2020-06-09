@@ -9,7 +9,7 @@ frappe.ui.form.on("Sales Invoice", {
         })        
     },
     validate: function(frm) {
-        if(frm.doc.outstanding_amount>0 && frm.doc.payment_cash==1){
+        if(frm.doc.outstanding_amount>0 && frm.doc.payment_cash==1 && frm.doc.is_return == 0){
             frappe.throw(__('For cash customer,  outstanding amount is not allowed. Please get full payment.'));
         }
     }
