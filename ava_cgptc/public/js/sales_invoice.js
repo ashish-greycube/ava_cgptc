@@ -10,7 +10,8 @@ frappe.ui.form.on("Sales Invoice", {
                         let base_rounded_total = frm.doc.base_grand_total
                         let outstanding_amount = frm.doc.outstanding_amount
                         let paid_amount = flt(base_rounded_total) - flt(outstanding_amount)
-                        let min_to_pay_before_save = Math.round(flt(base_rounded_total) * min_cash_required_percentage_cf / 100)
+                        // for SAR currency, fraction is 2. hence hard coded
+                        let min_to_pay_before_save =flt( flt(base_rounded_total) * min_cash_required_percentage_cf / 100,2)
                         if (frm.doc.outstanding_amount > 0 && payment_cash == 1 && frm.doc.is_return == 0 && paid_amount < min_to_pay_before_save) {
                             frappe.validated = false;
                             frappe.msgprint(__(repl("For Cash Customer : %(customer_name)s, Please receive minimum  :<b> %(min_to_pay_before_save)s </b> to proceed.", {
