@@ -1,6 +1,6 @@
 frappe.ui.form.on("Sales Invoice", {
     validate: function (frm) {
-        if (frm.doc.customer) {
+        if (frm.doc.customer && frm.doc.is_return == 0) {
             frappe.db.get_value('Customer', frm.doc.customer, ['payment_cash', 'min_cash_required_percentage_cf'])
                 .then(r => {
                     if (r.message) {
