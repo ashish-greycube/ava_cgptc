@@ -14,7 +14,7 @@ frappe.ui.form.on("Sales Invoice", {
                         let min_to_pay_before_save =flt( flt(base_rounded_total) * min_cash_required_percentage_cf / 100,2)
                         if (frm.doc.outstanding_amount > 0 && payment_cash == 1 && frm.doc.is_return == 0 && paid_amount < min_to_pay_before_save) {
                             frappe.validated = false;
-                            frappe.msgprint(__(repl("For Cash Customer : %(customer_name)s, Please receive minimum  :<b> %(min_to_pay_before_save)s </b> to proceed.", {
+                            frappe.msgprint(__(repl("As per the<b> PAYMENT TERMS </b>of this customer, minimum <b> SAR %(min_to_pay_before_save)s </b> must be collected to submit the invoice", {
                                 'customer_name': frm.doc.customer_name,
                                 'min_to_pay_before_save': min_to_pay_before_save
                             })))
