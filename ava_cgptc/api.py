@@ -120,14 +120,21 @@ def check_credit_limit_for_customer_group(customer,customer_group, company, igno
 					.format(" / " + credit_controller if credit_controller else ""))		
 
 def check_customer_group_credit_limit_so(self,method):
+	
+	customer=self.customer
+	company=self.company
+	customer_group=self.customer_group	
+	extra_amount=0
+
 	if not cint(frappe.db.get_value("Ava Customer Group Credit Limit",
 		{'parent': self.customer_group, 'parenttype': 'Customer Group', 'company': self.company},
 		"bypass_credit_limit_check")):
-		customer=self.customer
-		company=self.company
-		extra_amount=0
+		# you don't want to bypass(bypass_credit_limit_check==0)..i.e check what limit group has
 		ignore_outstanding_sales_order=False
-		customer_group=self.customer_group
+		check_credit_limit_for_customer_group(customer,customer_group, company, ignore_outstanding_sales_order,extra_amount)
+	else:
+		#bypass_credit_limit_check==1
+		ignore_outstanding_sales_order=True
 		check_credit_limit_for_customer_group(customer,customer_group, company, ignore_outstanding_sales_order,extra_amount)
 
 
